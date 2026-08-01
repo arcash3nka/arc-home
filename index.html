@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en" data-theme="mocha" data-crt="off">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>arcash3nka · systems programmer</title>
+<meta name="description" content="arcash3nka — systems programmer, second-year student at ETU LETI, Saint Petersburg. C++, terminal interfaces, binary formats.">
+<meta name="color-scheme" content="dark light">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="arcash3nka · systems programmer">
+<meta property="og:description" content="A terminal that happens to be a resume. C++, TUI, binary formats.">
+<!-- TODO(arc): положить рядом og.png 1200×630 и раскомментировать —
+     ссылка в телеграме будет выглядеть как скриншот терминала
+<meta property="og:image" content="og.png"> -->
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2311111b'/%3E%3Cpath d='M16 26v-8' stroke='%23b4884a' stroke-width='2.5' stroke-linecap='round'/%3E%3Cpath d='M16 20l-5-3M16 21l5-4' stroke='%23b4884a' stroke-width='2' stroke-linecap='round'/%3E%3Cellipse cx='11' cy='14' rx='6' ry='4.5' fill='%23a6e3a1'/%3E%3Cellipse cx='21' cy='12' rx='5.5' ry='4' fill='%2394e2d5'/%3E%3Crect x='10' y='26' width='12' height='3' rx='1.5' fill='%23585b70'/%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="styles/theme.css">
+<link rel="stylesheet" href="styles/layout.css">
+<link rel="stylesheet" href="styles/components.css">
+</head>
+
+<body>
+
+<!-- ═══ экран загрузки ═══════════════════════════════════════════════════ -->
+<div class="boot" id="boot">
+	<pre class="boot-log" id="boot-log"></pre>
+	<div class="boot-hint" id="boot-hint">press any key to skip</div>
+</div>
+
+<!-- ═══ страховка ════════════════════════════════════════════════════════
+     ES-модули запрещено грузить с file:// — это политика браузера, а не
+     поломка сайта. Safari при этом просто молча ничего не делает, и
+     посетитель остаётся смотреть на застывший экран загрузки. Через две
+     секунды после старта проверяем, ожил ли интерфейс, и если нет —
+     объясняем, что произошло, вместо тишины.
+     Скрипт намеренно классический, без type=module: он должен работать
+     ровно в тех условиях, где модули не работают.
+═══════════════════════════════════════════════════════════════════════ -->
+<script>
+(function () {
+	var LOCAL = location.protocol === 'file:';
+	setTimeout(function () {
+		if (document.documentElement.getAttribute('data-booted') === '1') return;
+
+		var log = document.getElementById('boot-log');
+		var hint = document.getElementById('boot-hint');
+		if (!log) return;
+
+		log.textContent = LOCAL
+			? '══════════════════════════════════════════\n'
+				+ ' modules blocked on file://\n'
+				+ '══════════════════════════════════════════\n\n'
+				+ 'Браузер не даёт странице грузить модули, когда её\n'
+				+ 'открыли двойным кликом по файлу. Это правило\n'
+				+ 'безопасности, сайт тут ни при чём.\n\n'
+				+ 'Запусти в папке сайта:\n\n'
+				+ '  python3 -m http.server 5199 --bind 127.0.0.1\n\n'
+				+ 'и открой http://127.0.0.1:5199\n\n'
+				+ 'На GitHub Pages всё работает само.'
+			: '══════════════════════════════════════════\n'
+				+ ' boot failed\n'
+				+ '══════════════════════════════════════════\n\n'
+				+ 'Скрипты не загрузились. Проверь консоль браузера\n'
+				+ 'и что рядом с index.html лежат папки src/ и data/.';
+
+		if (hint) hint.textContent = '';
+		document.getElementById('boot').style.cursor = 'default';
+	}, 2000);
+})();
+</script>
+
+<!-- ═══ окно файлового менеджера ═════════════════════════════════════════ -->
+<div class="app" id="app" data-view="root">
+
+	<header class="bar bar-t">
+		<span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+		<span class="win-title" id="win-title">arc-fm — /home/arc</span>
+		<nav class="bar-a">
+			<button type="button" id="btn-lang" title="language (Ctrl+L)">EN</button>
+			<button type="button" id="btn-theme" title="theme (Ctrl+T)">◐</button>
+			<button type="button" id="btn-shell" title="shell (:)">:</button>
+			<button type="button" id="btn-help" title="keys (?)">?</button>
+		</nav>
+	</header>
+
+	<main class="panes">
+		<section class="pane pane-nav">
+			<div class="pane-t">
+				<span id="nav-title">index</span>
+				<input class="pane-f" id="filter" type="search" aria-label="filter" placeholder="/">
+			</div>
+			<ul class="nav" id="nav" role="listbox" aria-label="sections"></ul>
+		</section>
+
+		<section class="pane pane-main">
+			<div class="content" id="content"></div>
+		</section>
+
+		<aside class="pane pane-rail" id="rail" aria-hidden="true"></aside>
+	</main>
+
+	<footer class="bar bar-b">
+		<div class="path" id="path">/home/arc/</div>
+		<div class="hints" id="hints"></div>
+	</footer>
+
+</div>
+
+<!-- ═══ оверлеи ══════════════════════════════════════════════════════════ -->
+<div class="ov" id="ov-help" hidden>
+	<div class="ov-box"></div>
+</div>
+<div class="ov ov-shell" id="ov-shell" hidden></div>
+
+<noscript>
+	<div class="nojs">
+		<h1>arcash3nka</h1>
+		<p>This page is a terminal, and a terminal needs JavaScript. The short version:
+		second-year student at ETU «LETI», Saint Petersburg. C++, terminal interfaces,
+		binary formats. Written a file manager, a game, and a handful of tools.</p>
+		<p><a href="https://github.com/arcash3nka">github.com/arcash3nka</a></p>
+	</div>
+</noscript>
+
+<script type="module" src="src/main.js"></script>
+</body>
+</html>

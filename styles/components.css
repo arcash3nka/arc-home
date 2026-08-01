@@ -1,0 +1,686 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   КОМПОНЕНТЫ
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── загрузка ───────────────────────────────────────────────────────────── */
+.boot {
+	position: fixed;
+	inset: 0;
+	z-index: 100;
+	display: grid;
+	align-content: center;
+	justify-content: center;
+	background: var(--crust);
+	cursor: pointer;
+}
+.boot[hidden] { display: none; }
+
+/* строка загрузки — 46 символов; на узком экране ужимаем шрифт,
+   чтобы баннер не уезжал за края */
+.boot-log { font-size: min(12.5px, 2.55vw); line-height: 1.65; }
+.boot-l { color: var(--subtext); }
+.boot-bar { color: var(--surface2); }
+.boot-head { color: var(--text); font-weight: 700; letter-spacing: .06em; }
+.boot-ok::first-line { color: var(--green); }
+.boot-ok { color: var(--overlay1); }
+.boot-done { color: var(--green); }
+
+.boot-l { animation: bootin .18s var(--ease) both; }
+@keyframes bootin { from { opacity: 0; transform: translateX(-4px); } }
+
+.boot-hint {
+	margin-top: 22px;
+	color: var(--surface2);
+	font-size: 11px;
+	text-align: center;
+	animation: blink 1.4s steps(2) infinite;
+}
+@keyframes blink { 50% { opacity: .25; } }
+
+/* ── индекс ─────────────────────────────────────────────────────────────── */
+.nav { padding: 6px 0; overflow-y: auto; flex: 1; }
+
+.nav-i {
+	display: flex;
+	align-items: center;
+	gap: 9px;
+	padding: 4px 12px;
+	color: var(--subtext);
+	cursor: pointer;
+	border-left: 2px solid transparent;
+	transition: background .12s, color .12s;
+}
+.nav-i:hover { background: var(--surface0); color: var(--text); }
+
+.nav-i.is-cursor {
+	background: var(--surface0);
+	border-left-color: var(--acc, var(--sky));
+	color: var(--text);
+}
+.nav-i.is-active .nav-n { color: var(--acc, var(--text)); font-weight: 500; }
+
+.nav-g { width: 1ch; color: var(--acc, var(--overlay0)); }
+.nav-n { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nav-m { color: var(--surface2); font-size: 10.5px; letter-spacing: .08em; }
+
+.nav-c { padding-left: 22px; font-size: 12.5px; color: var(--overlay1); }
+.nav-c .nav-g { color: var(--surface2); }
+
+/* «домой» стоит первым и отделён от каталогов */
+.nav-h {
+	margin-bottom: 6px;
+	padding-bottom: 7px;
+	border-bottom: 1px solid var(--surface0);
+}
+.nav-h .nav-m { color: var(--overlay0); }
+
+/* ── бонсай ─────────────────────────────────────────────────────────────── */
+.bonsai {
+	display: grid;
+	grid-template-columns: repeat(var(--cols), 1ch);
+	grid-auto-rows: 1.04em;
+	font-size: var(--bsize, 12px);
+	line-height: 1.04;
+	white-space: pre;
+	user-select: none;
+}
+
+.bx { transition: opacity .25s var(--ease), color .3s var(--ease), text-shadow .3s; }
+.bx-off { opacity: 0; }
+
+.bx-leaf { color: var(--leaf-b); }
+.bx-l1 { color: var(--leaf-a); }
+.bx-wood { color: var(--wood); }
+.bx-pot { color: var(--wood-dim); }
+
+.bx-wind { color: #cdeec9; }
+
+/* когда карточка наведена — гаснет всё, кроме её грозди */
+.bonsai.has-lit .bx { opacity: .22; }
+.bonsai.has-lit .bx.is-lit {
+	opacity: 1;
+	color: #eaffe6;
+	text-shadow: 0 0 10px rgba(166, 227, 161, .85);
+}
+
+/* Дерево ровно 64 символа в ширину, символ — 0.6em, значит вся крона
+   занимает 38.4em. Отсюда размер шрифта: контейнер делится на 38.4,
+   с запасом — 2.4cqw. Так бонсай всегда вписан и никогда не обрезан. */
+.pane-rail, .hero-b { container-type: inline-size; }
+.pane-rail .bonsai { --bsize: min(13px, 2.4cqw); }
+.hero-b .bonsai { --bsize: min(18px, 2.45cqw); }
+
+/* ── аватар ─────────────────────────────────────────────────────────────── */
+.avatar {
+	display: grid;
+	grid-template-columns: repeat(var(--cols), 1ch);
+	grid-auto-rows: 1.02em;
+	/* Символ моноширинного шрифта — примерно 0.6em в ширину, значит вся
+	   картинка занимает cols × 0.6em. Отсюда кегль: ширина контейнера,
+	   делённая на это число. Считается из --cols, поэтому и процедурный
+	   аватар, и импортированный портрет любой ширины вписываются сами. */
+	font-size: min(20px, calc(100cqw / (var(--cols) * 0.62)));
+	line-height: 1.02;
+	white-space: pre;
+	user-select: none;
+	filter: drop-shadow(0 0 22px rgba(66, 184, 242, .25));
+}
+
+/* Силуэт должен отличаться от фона, а не совпадать с ним: на тёмной теме
+   он светлее подложки, на светлой — темнее. Оригинал чёрный на белом,
+   поэтому вслепую скопированный чёрный на mocha просто исчезал. */
+/* Импортированный портрет несёт с собой поле фона оригинала: светлые '%'
+   тонкими глифами на тёмной странице читаются как ровная серая текстура,
+   а не как светлый прямоугольник. Рамка нужна лишь чтобы очертить кадр. */
+.portrait {
+	padding: 6px 8px;
+	border-radius: 8px;
+	filter: none;
+	box-shadow: inset 0 0 0 1px var(--surface0);
+}
+
+.av-core { color: #ffffff; }
+:root[data-theme='latte'] .av-core { color: #3fb8ef; }
+
+.av-body { color: #0c0c14; }
+.av-body.av-lit { color: #23233a; }
+:root[data-theme='latte'] .av-body { color: #16161f; }
+:root[data-theme='latte'] .av-body.av-lit { color: #3a3a4e; }
+:root[data-theme='latte'] .avatar { filter: drop-shadow(0 0 18px rgba(120, 60, 220, .18)); }
+
+/* ── герой ──────────────────────────────────────────────────────────────── */
+.hero {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) clamp(300px, 46%, 660px);
+	gap: clamp(20px, 4vw, 56px);
+	align-items: start;
+	min-height: 100%;
+}
+
+.hero-k { color: var(--overlay0); font-size: 12px; }
+.hero-k::before { content: '# '; color: var(--surface2); }
+
+.hero-n {
+	margin: 4px 0 2px;
+	/* градиентный текст обрезается по краю блока — держим запас справа */
+	padding-right: .12em;
+	font-size: clamp(28px, 4.4vw, 50px);
+	font-weight: 700;
+	letter-spacing: -.02em;
+	line-height: 1.05;
+	background: var(--prism);
+	background-size: 220% 100%;
+	-webkit-background-clip: text;
+	background-clip: text;
+	color: transparent;
+	animation: prism 14s linear infinite;
+}
+@keyframes prism { to { background-position: 220% 0; } }
+
+.hero-s { color: var(--subtext); font-size: clamp(13px, 1.5vw, 16px); }
+
+.hero-tag {
+	margin-top: 18px;
+	padding-left: 12px;
+	border-left: 2px solid var(--surface1);
+	color: var(--text);
+	font-size: clamp(14px, 1.7vw, 18px);
+	font-style: italic;
+}
+
+.hero-dirs {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+	gap: 6px;
+	margin-top: 22px;
+}
+
+.hero-d {
+	display: grid;
+	grid-template-columns: 1.6ch 1fr;
+	gap: 2px 8px;
+	padding: 8px 10px;
+	border: 1px solid var(--surface0);
+	border-radius: 6px;
+	text-align: left;
+	transition: border-color .16s, background .16s, transform .16s var(--ease);
+}
+.hero-d:hover {
+	background: var(--surface0);
+	border-color: var(--acc);
+	transform: translateX(3px);
+}
+.hero-d-g { grid-row: span 2; color: var(--acc); }
+.hero-d-n { color: var(--text); font-size: 12.5px; }
+.hero-d-s { color: var(--overlay0); font-size: 11px; }
+
+.hero-hint { margin-top: 20px; color: var(--overlay0); font-size: 12px; }
+
+/* дерево остаётся на виду, пока листаешь список каталогов */
+.hero-b {
+	position: sticky;
+	top: 0;
+	display: grid;
+	place-items: center;
+	min-height: min(560px, calc(100dvh - 190px));
+}
+
+@media (max-width: 900px) {
+	.hero { grid-template-columns: 1fr; gap: 20px; padding: 4px 0 20px; }
+	/* в одну колонку sticky-рельс не нужен: дерево просто идёт первым блоком */
+	.hero-b {
+		order: -1;
+		position: static;
+		min-height: 0;
+	}
+	.hero-b .bonsai { --bsize: min(10px, 2.5cqw); }
+	.hero-dirs { grid-template-columns: 1fr; }
+}
+
+/* ── заголовки блоков ───────────────────────────────────────────────────── */
+.blk { max-width: 78ch; animation: blkin .35s var(--ease) both; }
+/* портрет + текст в две колонки требуют больше места, чем колонка текста */
+/* whoami идёт в две колонки и занимает всю ширину области содержимого */
+.blk-about { max-width: none; }
+@keyframes blkin { from { opacity: 0; transform: translateY(8px); } }
+
+.sec { margin-bottom: 26px; }
+.sec-t {
+	font-size: clamp(20px, 2.6vw, 27px);
+	font-weight: 700;
+	letter-spacing: -.01em;
+}
+.sec-t::before { content: '▍'; margin-right: .4ch; color: var(--sky); }
+.sec-s { margin-top: 8px; max-width: 62ch; color: var(--subtext); font-size: 12.5px; }
+
+.grp {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin: 26px 0 10px;
+	color: var(--overlay1);
+	font-size: 11.5px;
+	font-weight: 500;
+	text-transform: uppercase;
+	letter-spacing: .16em;
+}
+.grp::after {
+	content: '';
+	flex: 1;
+	height: 1px;
+	background: linear-gradient(90deg, var(--surface0), transparent);
+}
+.grp-c { order: 3; color: var(--surface2); }
+
+.rule { height: 1px; margin: 22px 0; background: var(--surface0); }
+
+/* ── карточки ───────────────────────────────────────────────────────────── */
+.grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+	gap: 10px;
+}
+
+.card {
+	position: relative;
+	padding: 12px 14px;
+	border: 1px solid var(--surface0);
+	border-left: 2px solid var(--surface1);
+	border-radius: 7px;
+	background: var(--mantle);
+	transition: border-color .18s, background .18s, transform .18s var(--ease), box-shadow .18s;
+}
+.card-wide { grid-column: 1 / -1; }
+.is-expandable { cursor: pointer; }
+
+.card:hover,
+.card:focus-visible {
+	border-left-color: var(--acc);
+	transform: translateY(-2px);
+	box-shadow: 0 10px 26px -18px rgba(0, 0, 0, .9);
+}
+
+.card.is-focused {
+	border-color: var(--acc);
+	animation: pulse 1.4s var(--ease);
+}
+@keyframes pulse {
+	0%, 100% { box-shadow: 0 0 0 0 transparent; }
+	25% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--acc) 35%, transparent); }
+}
+
+.card-h { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.card-glyph { color: var(--acc); }
+.card-n { font-size: 14.5px; font-weight: 500; color: var(--text); }
+.card-m { color: var(--overlay0); font-size: 11.5px; }
+.card-b {
+	margin-left: auto;
+	padding: 1px 7px;
+	border-radius: 999px;
+	background: color-mix(in srgb, var(--acc) 16%, transparent);
+	color: var(--acc);
+	font-size: 10px;
+	letter-spacing: .08em;
+	text-transform: uppercase;
+}
+
+.card-body { margin-top: 8px; }
+.card-sum { color: var(--subtext); font-size: 12.5px; }
+
+.card-more {
+	display: grid;
+	grid-template-rows: 0fr;
+	opacity: 0;
+	transition: grid-template-rows .3s var(--ease), opacity .25s;
+}
+.card-more > * { overflow: hidden; }
+.is-open .card-more { grid-template-rows: 1fr; opacity: 1; }
+.is-expandable:not(.is-open) .card-more { pointer-events: none; }
+
+.is-expandable .card-h::after {
+	content: '▾';
+	margin-left: auto;
+	color: var(--surface2);
+	transition: transform .25s var(--ease);
+}
+.is-expandable.is-open .card-h::after { transform: rotate(180deg); }
+.is-expandable .card-b + .card-h::after { margin-left: 6px; }
+
+.card-f {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex-wrap: wrap;
+	margin-top: 12px;
+	padding-top: 10px;
+	border-top: 1px dashed var(--surface0);
+}
+
+.card-note-em {
+	margin-top: 10px;
+	padding: 8px 10px;
+	border-radius: 5px;
+	background: color-mix(in srgb, var(--acc) 9%, transparent);
+	color: var(--text);
+	font-size: 12px;
+}
+
+.points { margin-top: 10px; display: grid; gap: 6px; }
+.points li {
+	position: relative;
+	padding-left: 16px;
+	color: var(--subtext);
+	font-size: 12.5px;
+}
+.points li::before { content: '→'; position: absolute; left: 0; color: var(--acc, var(--overlay0)); }
+
+.chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.chip {
+	padding: 1px 8px;
+	border: 1px solid var(--surface0);
+	border-radius: 999px;
+	color: var(--overlay1);
+	font-size: 11px;
+}
+
+.note { margin-top: 10px; color: var(--overlay1); font-size: 12px; }
+.muted { color: var(--surface2); font-size: 11.5px; }
+.link { font-size: 12px; }
+
+.warn {
+	padding: 10px 12px;
+	border: 1px solid var(--yellow);
+	border-radius: 6px;
+	background: color-mix(in srgb, var(--yellow) 10%, transparent);
+	color: var(--text);
+	font-size: 12.5px;
+}
+
+/* ── уровень ────────────────────────────────────────────────────────────── */
+.lvl { display: flex; align-items: center; gap: 9px; }
+.lvl-ascii { color: var(--acc); letter-spacing: .06em; }
+.lvl-n { color: var(--overlay0); font-size: 11.5px; }
+.lvl-w { color: var(--surface2); font-size: 11px; }
+
+/* ── whoami ─────────────────────────────────────────────────────────────── */
+/* Текст слева, портрет справа. Правый рельс с бонсаем на этом разделе
+   отключён (data/tree.js → rail: false), поэтому под аватар отдана вся
+   освободившаяся ширина — ASCII почти не приходится ужимать. */
+.about-top {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) clamp(320px, 50%, 720px);
+	gap: clamp(18px, 3vw, 36px);
+	align-items: start;
+}
+.about-portrait {
+	display: grid;
+	justify-items: center;
+	gap: 12px;
+	container-type: inline-size;
+	/* портрет держится на виду, пока читаешь текст слева */
+	position: sticky;
+	top: 0;
+}
+.about-sig { display: grid; justify-items: center; gap: 2px; text-align: center; }
+.about-sig b { color: var(--text); }
+.about-sig span { color: var(--overlay0); font-size: 11px; }
+.about-text { max-width: 64ch; }
+.about-text p + p { margin-top: 12px; }
+.about-text p { color: var(--subtext); font-size: 13px; }
+
+.facts {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	gap: 3px 14px;
+	margin-top: 14px;
+	font-size: 12.5px;
+}
+.facts dt { color: var(--surface2); }
+.facts dt::after { content: ' ·'; }
+.facts dd { color: var(--text); }
+
+.about-meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px 16px;
+	margin-top: 22px;
+	padding-top: 14px;
+	border-top: 1px solid var(--surface0);
+	color: var(--overlay1);
+	font-size: 12px;
+}
+.about-meta span::before { content: '· '; color: var(--surface2); }
+
+@media (max-width: 900px) {
+	.about-top { grid-template-columns: 1fr; }
+	/* на узком экране портрет идёт первым, как обложка */
+	.about-portrait { order: -1; position: static; }
+}
+
+/* ── линия времени ──────────────────────────────────────────────────────── */
+.tl { position: relative; margin-left: 6px; padding-left: 20px; }
+.tl::before {
+	content: '';
+	position: absolute;
+	left: 0; top: 6px; bottom: 6px;
+	width: 1px;
+	background: linear-gradient(180deg, var(--surface1), transparent);
+}
+.tl-i { position: relative; padding: 0 0 22px; }
+.tl-dot {
+	position: absolute;
+	left: -24px; top: 1px;
+	color: var(--acc);
+	font-size: 10px;
+}
+.tl-when { color: var(--overlay0); font-size: 11.5px; letter-spacing: .04em; }
+.tl-what b { color: var(--text); font-weight: 500; }
+.tl-what span { display: block; color: var(--subtext); font-size: 12.5px; }
+
+/* ── активность ─────────────────────────────────────────────────────────── */
+.stats {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+	gap: 8px;
+	margin-bottom: 18px;
+}
+.stat {
+	padding: 10px 12px;
+	border: 1px solid var(--surface0);
+	border-radius: 6px;
+	background: var(--mantle);
+}
+.stat b { display: block; font-size: 20px; color: var(--text); }
+.stat i { color: var(--overlay0); font-size: 11px; font-style: normal; }
+
+.heat { padding: 12px; border: 1px solid var(--surface0); border-radius: 7px; background: var(--mantle); }
+.heat-m {
+	display: grid;
+	margin: 0 0 4px 26px;
+	color: var(--overlay0);
+	font-size: 9.5px;
+}
+.heat-row { display: flex; gap: 4px; }
+.heat-d {
+	display: grid;
+	grid-template-rows: repeat(3, 1fr);
+	gap: 2px;
+	width: 22px;
+	color: var(--overlay0);
+	font-size: 9.5px;
+}
+.heat-g { display: grid; gap: 2px; flex: 1; }
+.heat-g i { aspect-ratio: 1; border-radius: 2px; }
+.heat-f {
+	display: flex;
+	justify-content: space-between;
+	gap: 10px;
+	flex-wrap: wrap;
+	margin-top: 10px;
+	color: var(--overlay0);
+	font-size: 11px;
+}
+.heat-l { display: inline-flex; align-items: center; gap: 3px; }
+.heat-l i { width: 9px; height: 9px; border-radius: 2px; }
+
+.langs { display: grid; gap: 5px; margin-top: 16px; }
+.lang { display: grid; grid-template-columns: 9ch 1fr auto; align-items: center; gap: 8px; }
+.lang-n { color: var(--subtext); font-size: 12px; }
+.lang-b { height: 6px; border-radius: 3px; background: var(--lavender); min-width: 4px; }
+.lang-c { color: var(--overlay0); font-size: 11px; }
+
+.repos { display: grid; gap: 6px; }
+.repo {
+	display: grid;
+	grid-template-columns: minmax(0, 14ch) minmax(0, 1fr) auto;
+	gap: 12px;
+	align-items: baseline;
+	padding: 7px 10px;
+	border: 1px solid transparent;
+	border-radius: 5px;
+	color: inherit;
+	transition: background .14s, border-color .14s;
+}
+.repo:hover { background: var(--surface0); border-color: var(--surface1); text-decoration: none; }
+.repo-n { color: var(--blue); font-size: 12.5px; }
+.repo-d { color: var(--overlay1); font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.repo-m { color: var(--surface2); font-size: 11px; }
+
+/* ── контакты ───────────────────────────────────────────────────────────── */
+.cts { display: grid; gap: 8px; }
+.ct {
+	display: grid;
+	grid-template-columns: 10ch minmax(0, 1fr) auto auto;
+	align-items: center;
+	gap: 12px;
+	padding: 12px 14px;
+	border: 1px solid var(--surface0);
+	border-left: 2px solid var(--acc);
+	border-radius: 7px;
+	background: var(--mantle);
+	transition: transform .16s var(--ease), background .16s;
+}
+.ct:hover { transform: translateX(3px); background: var(--surface0); }
+.ct-l { color: var(--overlay0); font-size: 11.5px; }
+.ct-v {
+	position: relative;
+	justify-self: start;
+	padding: 0;
+	color: var(--text);
+	font-size: 14px;
+	text-align: left;
+}
+.ct-v:hover { color: var(--acc); }
+.ct-v.is-copied::after {
+	content: attr(data-copied);
+	position: absolute;
+	left: calc(100% + 10px);
+	color: var(--green);
+	font-size: 11px;
+	white-space: nowrap;
+}
+.ct-a { color: var(--acc); font-size: 15px; }
+.ct-h { color: var(--surface2); font-size: 11px; }
+
+@media (max-width: 620px) {
+	.ct { grid-template-columns: 1fr auto; row-gap: 4px; }
+	.ct-l { grid-column: 1 / -1; }
+	.ct-h { display: none; }
+}
+
+/* ── .dotfiles ──────────────────────────────────────────────────────────── */
+.code {
+	padding: 12px 14px;
+	border: 1px solid var(--surface0);
+	border-radius: 7px;
+	background: var(--crust);
+	color: var(--subtext);
+	font-size: 12px;
+	line-height: 1.6;
+	overflow-x: auto;
+	white-space: pre;
+}
+.bugs { display: grid; gap: 7px; }
+.bugs li { display: grid; grid-template-columns: 4ch 1fr; gap: 8px; color: var(--subtext); font-size: 12.5px; }
+.bug-n { color: var(--red); }
+
+/* ── оверлеи ────────────────────────────────────────────────────────────── */
+.ov {
+	position: fixed;
+	inset: 0;
+	z-index: 60;
+	display: grid;
+	place-items: center;
+	padding: 20px;
+	background: rgba(9, 9, 15, .62);
+	backdrop-filter: blur(3px);
+	animation: fade .18s var(--ease);
+}
+.ov[hidden] { display: none; }
+@keyframes fade { from { opacity: 0; } }
+
+.ov-box {
+	width: min(520px, 100%);
+	max-height: 80vh;
+	overflow: auto;
+	padding: 20px 22px;
+	border: 1px solid var(--surface1);
+	border-radius: var(--radius);
+	background: var(--base);
+	box-shadow: 0 30px 80px -40px #000;
+}
+.ov-t { margin-bottom: 14px; font-size: 15px; text-transform: uppercase; letter-spacing: .16em; color: var(--overlay1); }
+
+.keys { width: 100%; border-collapse: collapse; }
+.keys td { padding: 4px 0; font-size: 12.5px; color: var(--subtext); vertical-align: baseline; }
+.keys td:first-child { width: 12ch; white-space: nowrap; }
+
+/* ── шелл ───────────────────────────────────────────────────────────────── */
+.ov-shell { align-items: end; padding: 0 0 0; }
+
+.sh {
+	display: grid;
+	grid-template-rows: auto minmax(0, 1fr) auto;
+	width: min(920px, 100%);
+	height: min(62vh, 560px);
+	margin: 0 auto 10px;
+	border: 1px solid var(--surface1);
+	border-radius: var(--radius);
+	background: var(--crust);
+	box-shadow: 0 -20px 60px -30px #000;
+	animation: shup .22s var(--ease);
+}
+@keyframes shup { from { transform: translateY(18px); opacity: 0; } }
+
+.sh-head {
+	display: flex;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 8px 14px;
+	border-bottom: 1px solid var(--surface0);
+	color: var(--overlay0);
+	font-size: 11px;
+}
+
+.sh-log {
+	overflow-y: auto;
+	padding: 12px 14px;
+	font-size: 12.5px;
+	line-height: 1.55;
+}
+.sh-l { color: var(--subtext); white-space: pre-wrap; word-break: break-word; }
+.sh-echo { color: var(--text); }
+.sh-ok { color: var(--green); }
+.sh-err { color: var(--red); }
+.sh-dim { color: var(--surface2); }
+
+.sh-line {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 10px 14px;
+	border-top: 1px solid var(--surface0);
+}
+.sh-p { color: var(--green); white-space: nowrap; }
+.sh-in { flex: 1; min-width: 0; caret-color: var(--sky); }
+.sh-in:focus { outline: none; }

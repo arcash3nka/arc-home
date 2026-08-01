@@ -1,0 +1,204 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   ТЕМА — палитра, типографика, базовый сброс
+
+   Цвета — Catppuccin (Mocha и Latte), те же, что в моём хранилище и в
+   цветовых парах файлового менеджера. Призматический градиент взят с
+   аватара и используется всюду, где интерфейс должен ожить: фокус,
+   выделение, курсор.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+	--crust: #11111b;
+	--mantle: #181825;
+	--base: #1e1e2e;
+	--surface0: #313244;
+	--surface1: #45475a;
+	--surface2: #585b70;
+	--overlay0: #6c7086;
+	--overlay1: #7f849c;
+	--subtext: #a6adc8;
+	--text: #cdd6f4;
+
+	--blue: #89b4fa;
+	--sapphire: #74c7ec;
+	--sky: #89dceb;
+	--teal: #94e2d5;
+	--green: #a6e3a1;
+	--yellow: #f9e2af;
+	--peach: #fab387;
+	--red: #f38ba8;
+	--mauve: #cba6f7;
+	--pink: #f5c2e7;
+	--lavender: #b4befe;
+
+	--wood: #b4884a;
+	--wood-dim: #8a6837;
+	--leaf-a: #6cbf6a;
+	--leaf-b: #a6e3a1;
+
+	--prism: linear-gradient(115deg,
+			#2440d8 0%, #2f7ef5 18%, #42b8f2 32%,
+			#ffffff 50%, #ff9142 66%, #ff3355 82%, #e13cff 100%);
+
+	--radius: 9px;
+	--fs: 13.5px;
+	--mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, 'SF Mono',
+		Menlo, Consolas, 'Liberation Mono', monospace;
+
+	--ease: cubic-bezier(.2, .7, .3, 1);
+}
+
+:root[data-theme='latte'] {
+	--crust: #dce0e8;
+	--mantle: #e6e9ef;
+	--base: #eff1f5;
+	--surface0: #ccd0da;
+	--surface1: #bcc0cc;
+	--surface2: #acb0be;
+	--overlay0: #9ca0b0;
+	--overlay1: #8c8fa1;
+	--subtext: #5c5f77;
+	--text: #4c4f69;
+
+	--blue: #1e66f5;
+	--sapphire: #209fb5;
+	--sky: #04a5e5;
+	--teal: #179299;
+	--green: #40a02b;
+	--yellow: #df8e1d;
+	--peach: #fe640b;
+	--red: #d20f39;
+	--mauve: #8839ef;
+	--pink: #ea76cb;
+	--lavender: #7287fd;
+
+	/* на светлом фоне листва должна быть темнее, иначе дерево бледнеет */
+	--wood: #96703c;
+	--wood-dim: #b08a56;
+	--leaf-a: #3d8f2c;
+	--leaf-b: #5aa84c;
+}
+
+/* ── акценты: одна переменная на компонент ──────────────────────────────── */
+[data-accent='blue'] { --acc: var(--blue); }
+[data-accent='sapphire'] { --acc: var(--sapphire); }
+[data-accent='sky'] { --acc: var(--sky); }
+[data-accent='teal'] { --acc: var(--teal); }
+[data-accent='green'] { --acc: var(--green); }
+[data-accent='yellow'] { --acc: var(--yellow); }
+[data-accent='peach'] { --acc: var(--peach); }
+[data-accent='red'] { --acc: var(--red); }
+[data-accent='mauve'] { --acc: var(--mauve); }
+[data-accent='pink'] { --acc: var(--pink); }
+[data-accent='lavender'] { --acc: var(--lavender); }
+[data-accent='overlay'] { --acc: var(--overlay1); }
+
+/* ── сброс ──────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+	height: 100%;
+	margin: 0;
+}
+
+body {
+	background: var(--crust);
+	color: var(--text);
+	font: 400 var(--fs)/1.55 var(--mono);
+	font-variant-ligatures: none;
+	-webkit-font-smoothing: antialiased;
+	overflow: hidden;
+}
+
+/* призматическое свечение сверху — единственное «мягкое» пятно в макете */
+body::before {
+	content: '';
+	position: fixed;
+	inset: -20% 0 auto;
+	height: 62vh;
+	background:
+		radial-gradient(60% 70% at 50% 0%, rgba(66, 184, 242, .11), transparent 70%),
+		radial-gradient(38% 55% at 62% 6%, rgba(225, 60, 255, .09), transparent 70%),
+		radial-gradient(34% 50% at 38% 4%, rgba(36, 64, 216, .10), transparent 70%);
+	pointer-events: none;
+	z-index: 0;
+}
+
+:root[data-theme='latte'] body::before { opacity: .5; }
+
+h1, h2, h3, p, dl, dd, ol, ul, figure, pre { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
+
+button, input {
+	font: inherit;
+	color: inherit;
+	background: none;
+	border: 0;
+}
+button { cursor: pointer; }
+
+a { color: var(--blue); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+kbd {
+	display: inline-block;
+	padding: 0 .45em;
+	border: 1px solid var(--surface1);
+	border-bottom-width: 2px;
+	border-radius: 4px;
+	background: var(--surface0);
+	color: var(--subtext);
+	font-size: .85em;
+	line-height: 1.5;
+}
+
+::selection { background: var(--mauve); color: var(--crust); }
+
+:focus-visible {
+	outline: 2px solid var(--sky);
+	outline-offset: 2px;
+	border-radius: 3px;
+}
+
+/* ── скроллбары под терминал ────────────────────────────────────────────── */
+* { scrollbar-width: thin; scrollbar-color: var(--surface1) transparent; }
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-thumb { background: var(--surface1); border-radius: 4px; }
+*::-webkit-scrollbar-thumb:hover { background: var(--surface2); }
+*::-webkit-scrollbar-track { background: transparent; }
+
+/* ── CRT: включается командой :crt или konami ───────────────────────────── */
+:root[data-crt='on'] body::after {
+	content: '';
+	position: fixed;
+	inset: 0;
+	z-index: 999;
+	pointer-events: none;
+	background: repeating-linear-gradient(
+			180deg, rgba(0, 0, 0, .16) 0 1px, transparent 1px 3px);
+	mix-blend-mode: multiply;
+	animation: flick 5.5s infinite steps(60);
+}
+
+@keyframes flick {
+	0%, 96%, 100% { opacity: .55; }
+	97% { opacity: .38; }
+	98% { opacity: .62; }
+}
+
+.nojs {
+	position: relative;
+	z-index: 5;
+	max-width: 60ch;
+	margin: 12vh auto;
+	padding: 0 1.5rem;
+}
+.nojs h1 { font-size: 2rem; }
+.nojs p { margin-top: 1rem; color: var(--subtext); }
+
+@media (prefers-reduced-motion: reduce) {
+	*, *::before, *::after {
+		animation-duration: .001ms !important;
+		transition-duration: .001ms !important;
+	}
+}

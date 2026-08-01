@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>img → ascii · инструмент для arc-fm.web</title>
+<style>
+	:root { color-scheme: dark; }
+	body {
+		margin: 0; padding: 24px;
+		background: #11111b; color: #cdd6f4;
+		font: 13px/1.6 'JetBrains Mono', ui-monospace, monospace;
+	}
+	h1 { font-size: 16px; margin: 0 0 4px; }
+	p.lead { margin: 0 0 20px; color: #7f849c; max-width: 74ch; }
+	.row { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; margin-bottom: 14px; }
+	label { color: #a6adc8; display: inline-flex; gap: 8px; align-items: center; }
+	input[type=range] { width: 170px; }
+	b { color: #cdd6f4; min-width: 4ch; }
+	button {
+		padding: 5px 12px; border: 1px solid #45475a; border-radius: 5px;
+		background: #313244; color: #cdd6f4; font: inherit; cursor: pointer;
+	}
+	button:hover { background: #45475a; }
+	#drop {
+		display: grid; place-items: center; gap: 8px;
+		min-height: 120px; margin-bottom: 18px;
+		border: 1px dashed #45475a; border-radius: 8px;
+		color: #6c7086; text-align: center;
+	}
+	#drop.over { border-color: #89b4fa; color: #89b4fa; }
+	#out {
+		white-space: pre; overflow: auto;
+		margin: 0; padding: 14px;
+		border: 1px solid #313244; border-radius: 8px;
+		background: #181825; font-size: 7px; line-height: 1;
+		max-height: 60vh;
+	}
+	#canvas { display: none; }
+	.hint { color: #6c7086; max-width: 74ch; }
+	code { color: #a6e3a1; }
+</style>
+</head>
+<body>
+
+<h1>img → ascii</h1>
+<p class="lead">
+	Кидаешь картинку — получаешь ASCII, который можно вставить в <code>data/</code>
+	и показать на сайте. Шаг по вертикали умножается на 0.55, потому что символьная
+	ячейка выше, чем шире: без этой поправки любое лицо выходит вытянутым.
+</p>
+
+<div id="drop">
+	<span>перетащи сюда картинку</span>
+	<input type="file" id="file" accept="image/*">
+</div>
+
+<div class="row">
+	<label>ширина <input type="range" id="cols" min="30" max="160" value="80"><b id="colsVal">80</b></label>
+	<label>контраст <input type="range" id="contrast" min="50" max="250" value="100"><b id="contrastVal">1.00</b></label>
+	<label><input type="checkbox" id="invert"> инверсия</label>
+	<button id="copy" type="button">скопировать</button>
+</div>
+
+<pre id="out">…</pre>
+
+<p class="hint">
+	Дальше: сохрани текст в <code>data/portrait.js</code> как массив строк и отрисуй
+	его так же, как бонсай — сеткой из span'ов. Раскраску можно взять из
+	<code>src/ascii/avatar.js</code>: там призматическая рампа уже готова.
+</p>
+
+<canvas id="canvas"></canvas>
+
+<script>
+const RAMP = ' .:-=+*#%@';
+const CELL_ASPECT = 0.55;          // ширина символа / его высота
+
+const $ = (id) => document.getElementById(id);
+const out = $('out');
+const canvas = $('canvas');
+const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+let image = null;
+
+function render() {
+	const cols = Number($('cols').value);
+	const contrast = Number($('contrast').value) / 100;
+	const invert = $('invert').checked;
+
+	$('colsVal').textContent = cols;
+	$('contrastVal').textContent = contrast.toFixed(2);
+
+	if (!image) return;
+
+	const rows = Math.max(1, Math.round(cols * (image.height / image.width) * CELL_ASPECT));
+	canvas.width = cols;
+	canvas.height = rows;
+	ctx.drawImage(image, 0, 0, cols, rows);
+
+	const { data } = ctx.getImageData(0, 0, cols, rows);
+	const lines = [];
+
+	for (let y = 0; y < rows; y++) {
+		let line = '';
+		for (let x = 0; x < cols; x++) {
+			const i = (y * cols + x) * 4;
+			let lum = (data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114) / 255;
+			lum = (lum - 0.5) * contrast + 0.5;
+			if (invert) lum = 1 - lum;
+			lum = Math.min(1, Math.max(0, lum));
+			line += RAMP[Math.round(lum * (RAMP.length - 1))];
+		}
+		lines.push(line.replace(/\s+$/, ''));
+	}
+
+	out.textContent = lines.join('\n');
+}
+
+function load(file) {
+	const url = URL.createObjectURL(file);
+	const img = new Image();
+	img.onload = () => { image = img; URL.revokeObjectURL(url); render(); };
+	img.src = url;
+}
+
+$('file').addEventListener('change', (e) => {
+	if (e.target.files[0]) load(e.target.files[0]);
+});
+for (const id of ['cols', 'contrast', 'invert']) {
+	$(id).addEventListener('input', render);
+}
+
+const drop = $('drop');
+drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('over'); });
+drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+drop.addEventListener('drop', (e) => {
+	e.preventDefault();
+	drop.classList.remove('over');
+	if (e.dataTransfer.files[0]) load(e.dataTransfer.files[0]);
+});
+
+$('copy').addEventListener('click', async () => {
+	try {
+		await navigator.clipboard.writeText(out.textContent);
+		$('copy').textContent = 'скопировано';
+		setTimeout(() => { $('copy').textContent = 'скопировать'; }, 1200);
+	} catch {
+		const range = document.createRange();
+		range.selectNodeContents(out);
+		getSelection().removeAllRanges();
+		getSelection().addRange(range);
+	}
+});
+
+render();
+</script>
+</body>
+</html>
