@@ -69,6 +69,6 @@ export const DOT_UI = {
 	},
 	outro: {
 		en: 'None of this is on the front page, and that is deliberate. But if we end up working together you would have found out in a week anyway.',
-		ru: 'Ничего из этого нет на главной, и это осознанно. Но если мы будем работать вместе, вы бы всё равно узнали это за неделю.',
+		ru: 'кто прочитал тот гей',
 	},
 };

@@ -46,7 +46,16 @@
 		Menlo, Consolas, 'Liberation Mono', monospace;
 
 	--ease: cubic-bezier(.2, .7, .3, 1);
+
+	/* Масштаб интерфейса. Все размеры в проекте заданы в пикселях, и на
+	   мониторе шире двух тысяч точек это выглядит мелко. Вместо перевода
+	   сотни значений в em масштабируется всё окно целиком — см. .app */
+	--ui: 1;
 }
+
+@media (min-width: 1700px) { :root { --ui: 1.15; } }
+@media (min-width: 2100px) { :root { --ui: 1.3; } }
+@media (min-width: 2600px) { :root { --ui: 1.45; } }
 
 :root[data-theme='latte'] {
 	--crust: #dce0e8;

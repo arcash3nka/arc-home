@@ -12,8 +12,11 @@
 	z-index: 1;
 	display: grid;
 	grid-template-rows: auto 1fr auto;
-	height: 100dvh;
-	margin: 10px;
+	/* zoom масштабирует и содержимое, и собственные размеры окна, поэтому
+	   высоту и поля делим обратно — иначе окно вылезает за экран */
+	zoom: var(--ui);
+	height: calc((100dvh - 20px) / var(--ui));
+	margin: calc(10px / var(--ui));
 	border: 1px solid var(--surface0);
 	border-radius: var(--radius);
 	background: var(--base);
@@ -104,7 +107,7 @@
 /* ── панели ─────────────────────────────────────────────────────────────── */
 .panes {
 	display: grid;
-	grid-template-columns: 258px minmax(0, 1fr) clamp(300px, 26vw, 420px);
+	grid-template-columns: 258px minmax(0, 1fr) clamp(300px, 26vw, 470px);
 	min-height: 0;
 	transition: grid-template-columns .45s var(--ease);
 }

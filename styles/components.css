@@ -107,8 +107,8 @@
    занимает 38.4em. Отсюда размер шрифта: контейнер делится на 38.4,
    с запасом — 2.4cqw. Так бонсай всегда вписан и никогда не обрезан. */
 .pane-rail, .hero-b { container-type: inline-size; }
-.pane-rail .bonsai { --bsize: min(13px, 2.4cqw); }
-.hero-b .bonsai { --bsize: min(18px, 2.45cqw); }
+.pane-rail .bonsai { --bsize: min(22px, 2.4cqw); }
+.hero-b .bonsai { --bsize: min(26px, 2.45cqw); }
 
 /* ── аватар ─────────────────────────────────────────────────────────────── */
 .avatar {
@@ -118,35 +118,19 @@
 	/* Символ моноширинного шрифта — примерно 0.6em в ширину, значит вся
 	   картинка занимает cols × 0.6em. Отсюда кегль: ширина контейнера,
 	   делённая на это число. Считается из --cols, поэтому и процедурный
-	   аватар, и импортированный портрет любой ширины вписываются сами. */
-	font-size: min(20px, calc(100cqw / (var(--cols) * 0.62)));
+	   аватар, и любая другая картинка вписывается сама. */
+	font-size: min(26px, calc(100cqw / (var(--cols) * 0.62)));
 	line-height: 1.02;
 	white-space: pre;
 	user-select: none;
 	filter: drop-shadow(0 0 22px rgba(66, 184, 242, .25));
 }
 
-/* Силуэт должен отличаться от фона, а не совпадать с ним: на тёмной теме
-   он светлее подложки, на светлой — темнее. Оригинал чёрный на белом,
-   поэтому вслепую скопированный чёрный на mocha просто исчезал. */
-/* Импортированный портрет несёт с собой поле фона оригинала: светлые '%'
-   тонкими глифами на тёмной странице читаются как ровная серая текстура,
-   а не как светлый прямоугольник. Рамка нужна лишь чтобы очертить кадр. */
-.portrait {
-	padding: 6px 8px;
-	border-radius: 8px;
-	filter: none;
-	box-shadow: inset 0 0 0 1px var(--surface0);
-}
-
+/* Самое горячее ядро цвет получает от темы: на светлом фоне белое
+   просто исчезло бы. Всё остальное красится инлайном по шкале жара. */
 .av-core { color: #ffffff; }
-:root[data-theme='latte'] .av-core { color: #3fb8ef; }
-
-.av-body { color: #0c0c14; }
-.av-body.av-lit { color: #23233a; }
-:root[data-theme='latte'] .av-body { color: #16161f; }
-:root[data-theme='latte'] .av-body.av-lit { color: #3a3a4e; }
-:root[data-theme='latte'] .avatar { filter: drop-shadow(0 0 18px rgba(120, 60, 220, .18)); }
+:root[data-theme='latte'] .av-core { color: #ff7a1f; }
+:root[data-theme='latte'] .avatar { filter: drop-shadow(0 0 18px rgba(255, 120, 40, .22)); }
 
 /* ── герой ──────────────────────────────────────────────────────────────── */
 .hero {
@@ -239,9 +223,8 @@
 
 /* ── заголовки блоков ───────────────────────────────────────────────────── */
 .blk { max-width: 78ch; animation: blkin .35s var(--ease) both; }
-/* портрет + текст в две колонки требуют больше места, чем колонка текста */
-/* whoami идёт в две колонки и занимает всю ширину области содержимого */
-.blk-about { max-width: none; }
+/* whoami идёт в две колонки: сфера слева, текст справа */
+.blk-about { max-width: 112ch; }
 @keyframes blkin { from { opacity: 0; transform: translateY(8px); } }
 
 .sec { margin-bottom: 26px; }
@@ -403,13 +386,12 @@
 .lvl-w { color: var(--surface2); font-size: 11px; }
 
 /* ── whoami ─────────────────────────────────────────────────────────────── */
-/* Текст слева, портрет справа. Правый рельс с бонсаем на этом разделе
-   отключён (data/tree.js → rail: false), поэтому под аватар отдана вся
-   освободившаяся ширина — ASCII почти не приходится ужимать. */
+/* Сфера слева, текст справа. Колонка сферы намеренно широкая: горящий
+   шар — единственная картинка на странице, и мелким он не работает. */
 .about-top {
 	display: grid;
-	grid-template-columns: minmax(0, 1fr) clamp(320px, 50%, 720px);
-	gap: clamp(18px, 3vw, 36px);
+	grid-template-columns: clamp(300px, 48%, 620px) minmax(0, 1fr);
+	gap: clamp(18px, 3vw, 40px);
 	align-items: start;
 }
 .about-portrait {
@@ -417,7 +399,7 @@
 	justify-items: center;
 	gap: 12px;
 	container-type: inline-size;
-	/* портрет держится на виду, пока читаешь текст слева */
+	/* сфера держится на виду, пока читаешь текст справа */
 	position: sticky;
 	top: 0;
 }
@@ -453,8 +435,7 @@
 
 @media (max-width: 900px) {
 	.about-top { grid-template-columns: 1fr; }
-	/* на узком экране портрет идёт первым, как обложка */
-	.about-portrait { order: -1; position: static; }
+	.about-portrait { position: static; }
 }
 
 /* ── линия времени ──────────────────────────────────────────────────────── */
